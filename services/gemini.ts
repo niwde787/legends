@@ -1,3 +1,4 @@
+import { GoogleGenAI, Type } from '@google/genai';
 import { GameResult, TeamSeriesStats } from '../types';
 import { generateStaticGameStory, generateStaticSeriesStory } from './templateGenerator';
 
@@ -8,45 +9,82 @@ export interface NewspaperStory {
     isAIGenerated: boolean;
 }
 
-// Global state to track availability to prevent blocking on every call
-let geminiAvailabilityStatus: boolean | null = null;
-
-export async function checkGeminiAvailability(): Promise<boolean> {
-    try {
-        const response = await fetch('/api/ai/status');
-        if (response.ok) {
-            const data = await response.json();
-            geminiAvailabilityStatus = data.available;
-            return data.available;
-        }
-        geminiAvailabilityStatus = false;
-        return false;
-    } catch (err) {
-        geminiAvailabilityStatus = false;
-        return false;
-    }
+function getApiKey(): string {
+    return process.env.GEMINI_API_KEY || process.env.API_KEY || '';
 }
 
 export function isGeminiAvailable(): boolean {
-    return Boolean(geminiAvailabilityStatus);
+    const key = getApiKey();
+    return Boolean(key && key.trim().length > 0);
+}
+
+export async function checkGeminiAvailability(): Promise<boolean> {
+    return isGeminiAvailable();
+}
+
+let aiInstance: GoogleGenAI | null = null;
+
+function getAIClient(): GoogleGenAI | null {
+    const key = getApiKey();
+    if (!key) return null;
+    if (!aiInstance) {
+        aiInstance = new GoogleGenAI({ apiKey: key });
+    }
+    return aiInstance;
 }
 
 export async function generateAIGameStory(result: GameResult): Promise<NewspaperStory> {
     const fallback = generateStaticGameStory(result);
+    const ai = getAIClient();
+
+    if (!ai) {
+        return {
+            ...fallback,
+            isAIGenerated: false
+        };
+    }
 
     try {
-        const response = await fetch('/api/ai/story/game', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ result })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Backend AI request failed');
-        }
+        const prompt = `You are a veteran 1990s sports journalist writing the lead front-page recap for 'The Virtual Chronicle'.
+Write an evocative, authentic, newspaper-style game report for this legendary basketball simulation.
 
-        const parsed = await response.json();
-        
+Game Details:
+- Matchup: ${result.winner.name} def. ${result.loser.name}
+- Final Score: ${result.score} (Winner: ${result.winner.name})
+- Halftime Score: ${result.halftimeScore}
+- Total Lead Changes: ${result.leadChanges}
+- Total Duration: ${result.totalMinutes} minutes
+- Game MVP: ${result.mvp.name} with ${result.mvp.stats.pts} points, ${result.mvp.stats.reb} rebounds, ${result.mvp.stats.ast} assists.
+
+Format your response as a JSON object with:
+- headline: A dramatic, vintage all-caps sports headline (e.g. 'JORDAN'S MASTERPIECE SEALS THRILLER AS BULLS TOP LAKERS').
+- subheadline: A punchy one-sentence summary subtitle.
+- story: An array of 3 rich, journalistic paragraphs (first paragraph setting the atmosphere and stakes, second covering the pivotal momentum swings and defensive battles, third celebrating the MVP's heroic performance and legacy).`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        headline: { type: Type.STRING },
+                        subheadline: { type: Type.STRING },
+                        story: {
+                            type: Type.ARRAY,
+                            items: { type: Type.STRING }
+                        }
+                    },
+                    required: ['headline', 'subheadline', 'story']
+                }
+            }
+        });
+
+        const text = response.text;
+        if (!text) throw new Error('Empty response from Gemini');
+
+        const parsed = JSON.parse(text);
         if (parsed.headline && parsed.subheadline && Array.isArray(parsed.story) && parsed.story.length > 0) {
             return {
                 headline: parsed.headline,
@@ -72,20 +110,58 @@ export async function generateAISeriesStory(
     gameResults: GameResult[]
 ): Promise<NewspaperStory> {
     const fallback = generateStaticSeriesStory(winner, loser, seriesMVP, gameResults);
+    const ai = getAIClient();
+
+    if (!ai) {
+        return {
+            ...fallback,
+            isAIGenerated: false
+        };
+    }
 
     try {
-        const response = await fetch('/api/ai/story/series', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ winner, loser, seriesMVP, gameResults })
+        const seriesScore = `${winner.wins}-${loser.wins}`;
+        const gamesSummary = gameResults.map(g => `Game ${g.gameNumber}: ${g.winner.name} won (${g.score}), MVP: ${g.mvp.name} (${g.mvp.stats.pts}pts)`).join('; ');
+
+        const prompt = `You are a veteran sports columnist writing the commemorative championship issue for 'The Virtual Chronicle'.
+Write a legendary recap of this Best-of-7 playoff series.
+
+Series Details:
+- Series Winner: ${winner.name} (${winner.wins} wins)
+- Series Runner-up: ${loser.name} (${loser.wins} wins)
+- Final Series Result: ${seriesScore}
+- Series MVP: ${seriesMVP.name} with series averages of ${seriesMVP.stats.ppg.toFixed(1)} PPG, ${seriesMVP.stats.rpg.toFixed(1)} RPG, ${seriesMVP.stats.apg.toFixed(1)} APG.
+- Game-by-game summary: ${gamesSummary}
+
+Format your response as a JSON object with:
+- headline: An iconic championship all-caps headline.
+- subheadline: An evocative subheadline detailing the conquest.
+- story: An array of 3 rich, journalistic paragraphs (first recapping the championship coronation and series stakes, second analyzing the tactical battles and turning points across games, third celebrating the Series MVP's immortality in basketball lore).`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        headline: { type: Type.STRING },
+                        subheadline: { type: Type.STRING },
+                        story: {
+                            type: Type.ARRAY,
+                            items: { type: Type.STRING }
+                        }
+                    },
+                    required: ['headline', 'subheadline', 'story']
+                }
+            }
         });
 
-        if (!response.ok) {
-            throw new Error('Backend AI request failed');
-        }
+        const text = response.text;
+        if (!text) throw new Error('Empty response from Gemini');
 
-        const parsed = await response.json();
-
+        const parsed = JSON.parse(text);
         if (parsed.headline && parsed.subheadline && Array.isArray(parsed.story) && parsed.story.length > 0) {
             return {
                 headline: parsed.headline,
