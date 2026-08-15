@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basketball Legends</title>
+
+    <!-- Social Share Meta Tags -->
+    <meta name="description" content="A web application to simulate basketball games and series between teams of legendary players. Build your dream teams and watch the action unfold, with AI-powered game summaries." />
+    <meta property="og:title" content="Basketball Legends" />
+    <meta property="og:description" content="A web application to simulate basketball games and series between teams of legendary players. Build your dream teams and watch the action unfold, with AI-powered game summaries." />
+    <meta property="og:image" content="https://raw.githubusercontent.com/niwde787/basketball-legends/refs/heads/main/social_share.png" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Basketball Legends" />
+    <meta name="twitter:description" content="A web application to simulate basketball games and series between teams of legendary players. Build your dream teams and watch the action unfold, with AI-powered game summaries." />
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/niwde787/basketball-legends/refs/heads/main/social_share.png" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Merriweather:wght@400;700&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0c0a18; /* Darker, more purple/blue tint */
+            background-image: 
+                radial-gradient(at 80% 20%, hsla(280, 40%, 15%, 0.3) 0px, transparent 50%),
+                radial-gradient(at 20% 80%, hsla(220, 50%, 20%, 0.3) 0px, transparent 50%),
+                url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"%3E%3Cg fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.03"%3E%3Cpath d="M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 1.4l2.83 2.83 1.41-1.41L1.41 0H0v1.41zM38.59 40l-2.83-2.83 1.41-1.41L40 38.59V40h-1.41zM40 1.41l-2.83 2.83-1.41-1.41L38.59 0H40v1.41zM20 18.6l2.83-2.83 1.41 1.41L21.41 20l2.83 2.83-1.41 1.41L20 21.41l-2.83 2.83-1.41-1.41L18.59 20l-2.83-2.83 1.41-1.41L20 18.59z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
+        }
+        .logo-shape {
+            clip-path: polygon(0 15%, 15% 0, 85% 0, 100% 15%, 100% 85%, 85% 100%, 15% 100%, 0 85%);
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #FBBF24;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        .spinner-dark {
+            border: 4px solid rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            border-top-color: #333;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        .font-newspaper {
+            font-family: 'Merriweather', serif;
+        }
+        .font-headline {
+            font-family: 'Oswald', sans-serif;
+        }
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(107, 114, 128, 0.5); /* gray-500 with opacity */
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(107, 114, 128, 0.7);
+        }
+
+        /* Animations */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes logo-animation {
+            0%, 100% {
+                transform: scale(1) rotate(-1deg);
+            }
+            50% {
+                transform: scale(1.03) rotate(1deg);
+            }
+        }
+
+        .animate-fade-in { animation: fadeIn 0.6s ease-in-out forwards; }
+        .animate-fade-in-up { animation: fadeInUp 0.6s ease-in-out forwards; }
+        .animate-logo { animation: logo-animation 4s infinite ease-in-out; }
+
+        .newspaper-bg {
+            background-color: #F3F0E9; /* Off-white paper color */
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAAXNSR0IArs4c6QAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAMqADAAQAAAABAAAAMgAAAADWb1e5AAACNUlEQVRoBe2ZwQ7CMAxEdbf//+Xq1I0QMcgFlY5yB3mws3Fks5m28cwzxhjH8N3v+nl/fM9fz/P8/GE4H47jcDgeZ8b2+v2+fD6fL+f5/f58Pp/P9/s9+f79/k5/z/P8nJ/j8Xi8v7/P5/N5eXk5n89neXk5n89nMeaYm5uLMeZ8Pq9vjDE3Nxcxxvz+fl/O8/l8PpfP5/P7/f4+v9/v5/f7/T3P8/N8Pq9n/P79/k5/z/P8nJ/j8Xi8v7/P5/N5eXk5n89neXk5n89nx8wzxhgzzmOMsfY8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/M8z/P8z/P8z/P8z/P8z/P8/n8/GE4H47jcDgeZ8b2+v2+fD6fL+f5/f58Pp/P9/s9+f79/k5/z/P8nJ/j8Xi8v7/P5/N5eXk5n89neXk5n89nMeZ8Pq/vjDE3Nxcxxvz+fl/O8/l8PpfP5/P7/f4+v9/v5/f7/T3P8/N8Pq9n/P79/k5/z/P8nJ/j8Xi8v7/P5/N5eXk5n89neXk5n89nx8z8An38NIfasb2AAAAAAElFTkSuQmCC');
+            background-blend-mode: multiply;
+            background-size: 50px;
+            filter: sepia(20%);
+        }
+        .newspaper-bg img {
+            filter: grayscale(1) sepia(30%) contrast(1.1);
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.1.1",
+    "react-dom/client": "https://esm.sh/react-dom@^19.1.1/client",
+    "react/": "https://esm.sh/react@^19.1.1/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.13.0",
+    "immer": "https://esm.sh/immer@^10.1.1",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.1/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="text-gray-200 antialiased min-h-dvh">
+    <div id="app" class="w-full h-full"></div>
+    <audio id="buzzer-sound" src="https://raw.githubusercontent.com/niwde787/basketball-legends/main/buzzer.mp3" preload="auto"></audio>
+    <script type="module" src="./index.tsx"></script>
+</body>
+</html>
