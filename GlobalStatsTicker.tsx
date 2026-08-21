@@ -3,14 +3,18 @@ import { subscribeToGlobalStats } from './services/firebase';
 
 const GlobalStatsTicker: React.FC = () => {
     const [stats, setStats] = useState({ totalUsers: 0, totalGamesPlayed: 0 });
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = subscribeToGlobalStats(setStats);
+        const unsubscribe = subscribeToGlobalStats((newStats) => {
+            setStats(newStats);
+            setLoading(false);
+        });
         return () => unsubscribe();
     }, []);
 
     // If no stats yet, render nothing or placeholders
-    if (stats.totalGamesPlayed === 0 && stats.totalUsers === 0) {
+    if (loading) {
         return (
             <div className="mt-8 flex flex-col items-center justify-center opacity-0 animate-fade-in transition-opacity duration-1000">
                 <div className="flex items-center gap-6 text-sm font-mono tracking-widest text-amber-500/50 bg-black/40 px-6 py-2 rounded-full border border-amber-500/20">
