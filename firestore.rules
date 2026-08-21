@@ -24,7 +24,15 @@ service cloud.firestore {
     
     // Emails Collection
     match /emails/{emailId} {
+      allow get: if isValidId(emailId); // allow reading own doc to check existence
       allow create, update: if isValidId(emailId) && isValidUserEmail(incoming());
+    }
+
+    // Stats Collection
+    match /stats/global {
+      allow read: if true;
+      allow create: if incoming().keys().hasAny(['totalGamesPlayed', 'totalUsers']);
+      allow update: if incoming().diff(resource.data).affectedKeys().hasOnly(['totalGamesPlayed', 'totalUsers']);
     }
   }
 }

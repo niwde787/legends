@@ -1,5 +1,7 @@
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from "react";
+import GlobalStatsTicker from "./GlobalStatsTicker";
+import { incrementGlobalStat } from "./services/firebase";
 import { produce } from 'immer';
 import {
     Player, PlayerAttributes, PlayerInGame, Roster, Team, TeamInGame, GameResult, Screen,
@@ -341,6 +343,7 @@ const HomeScreen: React.FC<{ onSelectMode: (mode: 'single' | 'series' | 'histori
             <MenuButton onClick={() => onSelectMode('series')}>Best of 7</MenuButton>
             <MenuButton onClick={() => onSelectMode('historical')}>Historical</MenuButton>
         </div>
+        <GlobalStatsTicker />
     </div>
 );
 
@@ -389,6 +392,7 @@ const App: React.FC = () => {
     
     const handleGameEnd = useCallback((result: GameResult) => {
         setGameResult(result);
+        incrementGlobalStat('totalGamesPlayed').catch(console.error);
         setScreen(Screen.PostGame);
     }, []);
     
@@ -453,7 +457,7 @@ const App: React.FC = () => {
     };
 
     return (
-        <main className="bg-slate-900/60 backdrop-blur-xl w-full relative overflow-y-auto custom-scrollbar p-4 sm:max-w-7xl sm:mx-auto sm:my-4 sm:rounded-2xl sm:border border-slate-700/60 shadow-2xl min-h-dvh sm:min-h-0 sm:h-auto sm:max-h-[95dvh]">
+        <main className="flex flex-col bg-slate-900/60 backdrop-blur-xl w-full relative overflow-y-auto custom-scrollbar p-4 sm:max-w-7xl sm:mx-auto sm:my-4 sm:rounded-2xl sm:border border-slate-700/60 shadow-2xl min-h-dvh sm:min-h-0 sm:h-auto sm:max-h-[95dvh]">
             {!hasAcceptedTerms ? (
                 <DisclaimerScreen onAccept={(email) => {
                     localStorage.setItem('termsAccepted', 'true');
@@ -461,12 +465,20 @@ const App: React.FC = () => {
                     setHasAcceptedTerms(true);
                 }} />
             ) : (
-                <>
-                    {renderScreen()}
-                    <div className="absolute bottom-2 right-4 text-xs text-slate-600 font-mono">
+                <div className="flex flex-col flex-grow">
+                    <div className="flex-grow">
+                        {renderScreen()}
+                    </div>
+                    
+                    <footer className="mt-12 pt-6 border-t border-slate-700/50 text-[10px] md:text-xs text-slate-500 text-center max-w-4xl mx-auto opacity-70 hover:opacity-100 transition-opacity">
+                        <p className="mb-2"><strong>Disclaimer:</strong> Basketball Legends is a text-based fantasy sports simulation. In accordance with the principles of Fair Use and established legal precedents regarding fantasy sports (including <em>C.B.C. v. Major League Baseball, 2007</em> and <em>Daniels v. FanDuel, 2018</em>), the use of historical athlete names and statistics is for transformative, entertainment purposes only.</p>
+                        <p>All game results, statistics, and narratives generated within this application are purely fictional and created by an algorithm. This application is not affiliated with, endorsed, or sponsored by any official sports league or players' association.</p>
+                    </footer>
+
+                    <div className="absolute top-2 right-4 text-xs text-slate-600 font-mono">
                         V1.7
                     </div>
-                </>
+                </div>
             )}
         </main>
     );
@@ -1196,6 +1208,7 @@ const SeriesScreen: React.FC<{
 
     const handleGameEnd = (result: GameResult) => {
         setGameResults(prev => [...prev, result]);
+        incrementGlobalStat("totalGamesPlayed").catch(console.error);
 
         const updateStats = (currentTeam: TeamSeriesStats, gameTeam: TeamInGame): { [playerName: string]: Omit<PlayerStats, 'mins'> } => {
             return produce(currentTeam.seriesStats, draft => {
