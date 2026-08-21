@@ -24,10 +24,7 @@ service cloud.firestore {
     
     // Emails Collection
     match /emails/{emailId} {
-      // Anyone can add an email (anonymous submission). 
-      // We only allow create. We don't allow read, update, or delete.
-      allow create: if isValidId(emailId) && isValidUserEmail(incoming());
-      // No read access for public users.
+      allow create, update: if isValidId(emailId) && isValidUserEmail(incoming());
     }
   }
 }
