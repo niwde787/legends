@@ -3,20 +3,13 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { produce } from 'immer';
 import {
     Player, PlayerAttributes, PlayerInGame, Roster, Team, TeamInGame, GameResult, Screen,
-    PlayByPlayLog, QuarterStats, GameScore, TeamSeriesStats, PlayerStats
+    PlayByPlayLog, QuarterStats, GameScore, TeamSeriesStats, PlayerStats, NewspaperStory
 } from './types';
 import { players, POSITIONS, allPlayers } from './constants';
 import {
     generateStaticGameStory,
     generateStaticSeriesStory
 } from './services/templateGenerator';
-import {
-    generateAIGameStory,
-    generateAISeriesStory,
-    isGeminiAvailable,
-    checkGeminiAvailability,
-    NewspaperStory
-} from './services/gemini';
 
 // UTILITY & HELPER COMPONENTS
 
@@ -299,11 +292,6 @@ const App: React.FC = () => {
     const [isSeries, setIsSeries] = useState(false);
     const [gameResult, setGameResult] = useState<GameResult | null>(null);
     const [historicalSeriesInfo, setHistoricalSeriesInfo] = useState<{name: string, gameDates: string[]}|null>(null);
-    const [, setGeminiReady] = useState(false);
-
-    useEffect(() => {
-        checkGeminiAvailability().then(() => setGeminiReady(true));
-    }, []);
 
     const handleSelectMode = useCallback((mode: 'single' | 'series' | 'historical') => {
         if (mode === 'historical') {
@@ -1330,25 +1318,6 @@ const PostGameScreen: React.FC<{
         ...generateStaticGameStory(result),
         isAIGenerated: false
     }));
-    const [isLoadingAI, setIsLoadingAI] = useState(false);
-
-    const loadStory = useCallback(async () => {
-        if (isGeminiAvailable()) {
-            setIsLoadingAI(true);
-            try {
-                const aiStory = await generateAIGameStory(result);
-                setStory(aiStory);
-            } catch (e) {
-                console.error('Failed to generate AI story:', e);
-            } finally {
-                setIsLoadingAI(false);
-            }
-        }
-    }, [result]);
-
-    useEffect(() => {
-        loadStory();
-    }, [loadStory]);
     
     return (
         <>
@@ -1357,27 +1326,6 @@ const PostGameScreen: React.FC<{
                 <article>
                     <header className="text-center border-b-4 border-black pb-4 mb-4">
                         <img src="https://raw.githubusercontent.com/niwde787/basketball-legends/main/newspapper.png" alt="The Virtual Chronicle" className="mx-auto h-16 md:h-20 mb-4" />
-                        <div className="flex justify-center items-center gap-2 mb-2">
-                            {isLoadingAI && (
-                                <span className="text-xs font-semibold px-2.5 py-0.5 bg-amber-200 text-amber-900 rounded-full animate-pulse border border-amber-400">
-                                    ✍️ Generating AI Chronicle...
-                                </span>
-                            )}
-                            {!isLoadingAI && story.isAIGenerated && (
-                                <span className="text-xs font-semibold px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full border border-emerald-300">
-                                    ✨ AI Chronicle (Gemini)
-                                </span>
-                            )}
-                            {!isLoadingAI && isGeminiAvailable() && (
-                                <button
-                                    onClick={loadStory}
-                                    title="Regenerate with Gemini AI"
-                                    className="text-xs font-semibold px-2.5 py-0.5 bg-black/10 hover:bg-black/20 text-gray-800 rounded-full transition-colors border border-black/20"
-                                >
-                                    🔄 Regenerate
-                                </button>
-                            )}
-                        </div>
                         <h1 className="font-headline text-2xl sm:text-4xl md:text-5xl my-2 text-gray-900">{story.headline}</h1>
                         <h2 className="font-newspaper text-lg sm:text-xl md:text-2xl text-gray-800">{story.subheadline}</h2>
                         <p className="text-sm italic mt-4 text-gray-700">By V.C. Sports Correspondent</p>
@@ -1629,26 +1577,7 @@ const SeriesEndScreen: React.FC<{
         ...generateStaticSeriesStory(winner, loser, seriesMVP, gameResults),
         isAIGenerated: false
     }));
-    const [isLoadingAI, setIsLoadingAI] = useState(false);
     const seriesScore = `${winner.wins}-${loser.wins}`;
-
-    const loadStory = useCallback(async () => {
-        if (isGeminiAvailable()) {
-            setIsLoadingAI(true);
-            try {
-                const aiStory = await generateAISeriesStory(winner, loser, seriesMVP, gameResults);
-                setStory(aiStory);
-            } catch (e) {
-                console.error('Failed to generate AI series story:', e);
-            } finally {
-                setIsLoadingAI(false);
-            }
-        }
-    }, [winner, loser, seriesMVP, gameResults]);
-
-    useEffect(() => {
-        loadStory();
-    }, [loadStory]);
 
     return (
         <>
@@ -1657,27 +1586,6 @@ const SeriesEndScreen: React.FC<{
                 <article>
                     <header className="text-center border-b-4 border-black pb-4 mb-4">
                         <img src="https://raw.githubusercontent.com/niwde787/basketball-legends/main/newspapper.png" alt="The Virtual Chronicle" className="mx-auto h-16 md:h-20 mb-4" />
-                        <div className="flex justify-center items-center gap-2 mb-2">
-                            {isLoadingAI && (
-                                <span className="text-xs font-semibold px-2.5 py-0.5 bg-amber-200 text-amber-900 rounded-full animate-pulse border border-amber-400">
-                                    ✍️ Generating AI Series Chronicle...
-                                </span>
-                            )}
-                            {!isLoadingAI && story.isAIGenerated && (
-                                <span className="text-xs font-semibold px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full border border-emerald-300">
-                                    ✨ AI Chronicle (Gemini)
-                                </span>
-                            )}
-                            {!isLoadingAI && isGeminiAvailable() && (
-                                <button
-                                    onClick={loadStory}
-                                    title="Regenerate with Gemini AI"
-                                    className="text-xs font-semibold px-2.5 py-0.5 bg-black/10 hover:bg-black/20 text-gray-800 rounded-full transition-colors border border-black/20"
-                                >
-                                    🔄 Regenerate
-                                </button>
-                            )}
-                        </div>
                         <h1 className="font-headline text-2xl sm:text-4xl md:text-5xl my-2 text-gray-900">{story.headline}</h1>
                         <h2 className="font-newspaper text-lg sm:text-xl md:text-2xl text-gray-800">{story.subheadline}</h2>
                         <p className="text-sm italic mt-4 text-gray-700">The Final Result: {seriesScore}</p>

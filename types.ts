@@ -113,6 +113,13 @@ export interface GameResult {
     totalMinutes: number;
 }
 
+export interface NewspaperStory {
+    headline: string;
+    subheadline: string;
+    story: string[];
+    isAIGenerated: boolean;
+}
+
 export enum Screen {
     Home,
     RosterSetupTeam1,

@@ -1,9 +1,7 @@
 {
-  "name": "Remix Basketball Legends Simulator (Code Audit)",
-  "description": "A web application to simulate basketball games and series between teams of legendary players. Build your dream teams and watch the action unfold, with AI-powered game summaries.",
+  "name": "Basketball Legends Simulator (Keyless)",
+  "description": "",
   "requestFramePermissions": [],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ],
+  "majorCapabilities": [],
   "prompt": ""
 }
