@@ -1,0 +1,33 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net
+    match /{document=**} { 
+      allow read, write: if false; 
+    }
+
+    // --- PRIMITIVE HELPERS ---
+    function incoming() { return request.resource.data; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    
+    // --- VALIDATION BLUEPRINTS ---
+    function isValidUserEmail(data) {
+      return data.keys().hasAll(['email', 'createdAt']) && 
+             data.keys().size() == 2 &&
+             data.email is string && data.email.size() <= 254 && data.email.matches('^.+@.+\\..+$') &&
+             data.createdAt == request.time;
+    }
+
+    // --- COLLECTION RULES ---
+    
+    // Emails Collection
+    match /emails/{emailId} {
+      // Anyone can add an email (anonymous submission). 
+      // We only allow create. We don't allow read, update, or delete.
+      allow create: if isValidId(emailId) && isValidUserEmail(incoming());
+      // No read access for public users.
+    }
+  }
+}

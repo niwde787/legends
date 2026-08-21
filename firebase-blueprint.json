@@ -1,0 +1,30 @@
+{
+  "entities": {
+    "UserEmail": {
+      "title": "UserEmail",
+      "description": "An email address submitted by a user agreeing to the terms.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address.",
+          "maxLength": 254
+        },
+        "createdAt": {
+          "type": "timestamp",
+          "description": "When the email was submitted."
+        }
+      },
+      "required": ["email", "createdAt"]
+    }
+  },
+  "firestore": {
+    "emails/{emailId}": {
+      "schema": {
+        "$ref": "#/entities/UserEmail"
+      },
+      "description": "A collection storing emails of users who accepted the terms."
+    }
+  }
+}

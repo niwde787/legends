@@ -10,6 +10,7 @@ import {
     generateStaticGameStory,
     generateStaticSeriesStory
 } from './services/templateGenerator';
+import { saveUserEmail } from './services/firebase';
 
 // UTILITY & HELPER COMPONENTS
 
@@ -268,6 +269,64 @@ const historicalSeriesData: { name: string; logo: string; description: string; g
 
 // --- VIEW / SCREEN COMPONENTS ---
 
+const DisclaimerScreen: React.FC<{ onAccept: (email: string) => void }> = ({ onAccept }) => {
+    const [email, setEmail] = useState('');
+    const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!email || !/\S+@\S+\.\S+/.test(email)) {
+            setError('Please enter a valid email address.');
+            return;
+        }
+        
+        setIsSubmitting(true);
+        setError('');
+        
+        try {
+            await saveUserEmail(email);
+            onAccept(email);
+        } catch (err) {
+            console.error(err);
+            setError('Failed to save email. Please try again.');
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="flex flex-col items-center justify-center h-full text-center p-4 animate-fade-in-up">
+            <img src="https://raw.githubusercontent.com/niwde787/basketball-legends/main/logo.png" alt="Basketball Legends Logo" className="w-32 sm:w-48 mx-auto animate-logo mb-6" />
+            <h1 className="font-headline text-2xl sm:text-4xl font-black text-amber-400 mt-4 uppercase tracking-wider" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.7)' }}>
+                Welcome to Basketball Legends
+            </h1>
+            <div className="bg-slate-800/80 backdrop-blur-md p-6 sm:p-10 rounded-xl shadow-2xl mt-8 max-w-lg w-full border border-slate-700/50">
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-4">Terms and Conditions</h2>
+                <p className="text-gray-300 text-sm sm:text-base mb-6">
+                    By entering your email address below, you agree to our Terms of Service and Privacy Policy. Your email will be used for account purposes and updates.
+                </p>
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-left">
+                    <div>
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => { setEmail(e.target.value); setError(''); }}
+                            placeholder="Enter your email address"
+                            className="w-full px-4 py-3 rounded-lg bg-slate-900/80 border border-slate-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                            required
+                            disabled={isSubmitting}
+                        />
+                        {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+                    </div>
+                    <MenuButton type="submit" className="w-full mt-2" disabled={isSubmitting}>
+                        {isSubmitting ? 'Submitting...' : 'Agree & Continue'}
+                    </MenuButton>
+                </form>
+            </div>
+        </div>
+    );
+};
+
 const HomeScreen: React.FC<{ onSelectMode: (mode: 'single' | 'series' | 'historical') => void }> = ({ onSelectMode }) => (
     <div className="flex flex-col items-center justify-center h-full text-center p-4 animate-fade-in-up">
         <img src="https://raw.githubusercontent.com/niwde787/basketball-legends/main/logo.png" alt="Basketball Legends Logo" className="w-48 sm:w-56 md:w-72 mx-auto animate-logo" />
@@ -286,6 +345,9 @@ const HomeScreen: React.FC<{ onSelectMode: (mode: 'single' | 'series' | 'histori
 );
 
 const App: React.FC = () => {
+    const [hasAcceptedTerms, setHasAcceptedTerms] = useState<boolean>(() => {
+        return localStorage.getItem('termsAccepted') === 'true';
+    });
     const [screen, setScreen] = useState<Screen>(Screen.Home);
     const [team1Data, setTeam1Data] = useState<Team | null>(null);
     const [teams, setTeams] = useState<[Team, Team] | null>(null);
@@ -388,10 +450,20 @@ const App: React.FC = () => {
 
     return (
         <main className="bg-slate-900/60 backdrop-blur-xl w-full relative overflow-y-auto custom-scrollbar p-4 sm:max-w-7xl sm:mx-auto sm:my-4 sm:rounded-2xl sm:border border-slate-700/60 shadow-2xl min-h-dvh sm:min-h-0 sm:h-auto sm:max-h-[95dvh]">
-            {renderScreen()}
-            <div className="absolute bottom-2 right-4 text-xs text-slate-600 font-mono">
-                V1.7
-            </div>
+            {!hasAcceptedTerms ? (
+                <DisclaimerScreen onAccept={(email) => {
+                    localStorage.setItem('termsAccepted', 'true');
+                    localStorage.setItem('userEmail', email);
+                    setHasAcceptedTerms(true);
+                }} />
+            ) : (
+                <>
+                    {renderScreen()}
+                    <div className="absolute bottom-2 right-4 text-xs text-slate-600 font-mono">
+                        V1.7
+                    </div>
+                </>
+            )}
         </main>
     );
 };
