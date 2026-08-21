@@ -23,7 +23,7 @@ const MenuButton: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & { var
     // 3. Spacing: Generous padding for easy clicking.
     // 4. Readability: Readable sentence-case labels (by removing 'uppercase').
     // 5. Feedback: 'Pressed' effect on active state with a subtle downward motion.
-    const baseClasses = 'font-bold py-3 px-8 rounded-lg text-lg transition-all duration-200 ease-in-out transform focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-offset-slate-900/80 disabled:opacity-50 disabled:cursor-not-allowed';
+    const baseClasses = 'touch-manipulation font-bold py-3 px-8 rounded-lg text-lg transition-all duration-200 ease-in-out transform focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-offset-slate-900/80 disabled:opacity-50 disabled:cursor-not-allowed';
     
     const variantClasses = {
         primary: 'bg-gradient-to-b from-amber-500 to-amber-600 text-slate-900 shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-500/40 hover:-translate-y-1 active:translate-y-0 active:shadow-inner active:from-amber-600 active:to-amber-600 focus:ring-amber-400',
@@ -354,6 +354,10 @@ const App: React.FC = () => {
     const [isSeries, setIsSeries] = useState(false);
     const [gameResult, setGameResult] = useState<GameResult | null>(null);
     const [historicalSeriesInfo, setHistoricalSeriesInfo] = useState<{name: string, gameDates: string[]}|null>(null);
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [screen]);
 
     const handleSelectMode = useCallback((mode: 'single' | 'series' | 'historical') => {
         if (mode === 'historical') {
